@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Add
+{% endblock %}
+
+{% block main %}
+    <form action="/add" method="POST" onsubmit="form_submit()">
+        <label for="tag">Tag number</label>
+        <input type="number" name="tag" id="tag">
+        <label for="date_bought">Date bought</label>
+        <input type="date" name="date_bought" id="date_bought">
+        <label for="bought_from">Bought from</label>
+        <input type="text" name="bought_from" id="bought_from">
+        <input type="text" name="milk_history" id="milk_history">
+        <label for="add_to_milk_history">Add to milk history</label>
+        <input type="text" name="LN_complete" id="LN_complete">
+        <input type="text" name="milk_history_date_complete" id="milk_history_date_complete">
+        <input type="text" name="milk_complete" id="milk_complete">    
+        <div class="form-group form-inline">
+            LN: <input type="number" name="LN" id="LN" class="something">
+            date: <input type="date" name="date" id="milk_history_date" class="something">
+            Milk:<input type="number" name="milk" id="milk" class="something">
+            <button class="btn btn-secondary" onclick="add_milk_history(event)">Add</button>
+        </div>
+        <button type="submit" class="btn btn-success">Submit</button>
+    </form>
+    <script>
+        function add_milk_history(event) {
+            event.preventDefault();
+            document.getElementById('LN_complete').value += '_' + document.getElementById('LN').value;
+            document.getElementById('milk_history_date_complete').value += '_' + document.getElementById('milk_history_date').value;
+            document.getElementById('milk_complete').value += '_' + document.getElementById('milk').value;
+            options = document.getElementsByClassName('something');
+            Array.prototype.filter.call(options, function(option) {
+                option.value = '';
+            });
+            options[0].focus();
+        }
+        document.addEventListener('keydown', (event) => {if (event.keyCode == 13) add_milk_history()});
+    </script>
+{% endblock %}.value

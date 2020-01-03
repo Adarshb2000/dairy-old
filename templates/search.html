@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Search
+{% endblock %}
+
+{% block main %}
+    <form action="/search", method="POST" autocomplete="off">
+        <div id="div_for_tag">
+            <label for="tag">Enter the tag number</label>
+            <input type="text" name="tag" id="tag">
+        </div>
+        <div id="div_for_bought_from">
+            <label for="name">Enter the name from whom you bought</label>
+            <input type="text" name="bought_from" id="bought_from">
+        </div>
+        <div id="div_for_milk">
+            <label for="milk_history">Enter the query for milk.</label>
+            <input type="text" name="milk_history" id="milk_history">
+        </div>
+        <div id="div_for_pregnancy">
+            <label for="pregnancy">Enter the query for pregnancy</label>
+            <input type="text" name="pregnancy" id="pregnancy">
+        </div>
+        <div id="div_for_disease">
+                <label for="diseases">Enter the query for diseases</label>
+                <input type="text" name="diseases" id="diseases">
+        </div>
+        <div id="div_for_comment">
+                <label for="comment">Enter the query for comment</label>
+                <input type="text" name="comment" id="comment">
+        </div>
+        <button type="submit">submit</button>
+    </form>
+{% endblock %}

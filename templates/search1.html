@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Search
+{% endblock %}
+
+{% block main %}
+    <form>
+        <div>
+            <label for="thing">Select the thing</label>
+            <select name="thing" id="thing" required>
+                <option value="tag">tag</option>
+                <option value="date_bought" id="date_bought" data-date-required="true">Date bought</option>
+                <option value="bought_from" id="bought_from" data-date-required="true">Bought From</option>
+                <option value="milk" id="milk" data-date-required="true">Something related to milk</option>
+                <option value="pregnancy" id="pregnancy" data-date-required="false">Pregnancy</option>
+                <option value="diseases" id="diseases" data-date-required="true">Disease</option>
+                <option value="comment" id="comment" data-date-required="false">Specific feature</option>
+            </select>
+            <button type="button" onclick="div_to_show()">Continue</button>
+        </div>
+        <p id="demo"></p>
+    
+        <div id="div_for_tag" class="something" hidden>
+            <input type="number" name="tag_number" id="tag_number" autocomplete="off" required>
+        </div>
+        <div id="div_for_date_bought" class="something" hidden>
+            Select the dates. Enter just one if you want to search for a day.
+        </div>
+        <div id="div_for_bought_from" class="something" hidden>
+            <label for="name">Enter the name</label>
+            <input type="text" name="name" id="name">
+        </div>
+        <div id="div_for_milk" class="something" hidden>
+
+        </div>
+        <div id="div_for_pregnancy" class="something" hidden>
+            <div class="custom-control custom-radio">
+                <input type="radio" id="non_pregnant" name="non_pregnant" class="custom-control-input">
+                <label class="custom-control-label" for="non_pregnant">Click For non-pregnant one's</label>
+            </div>
+            <div class="custom-control custom-radio">
+                <input type="radio" id="pregnant" name="pregnant" class="custom-control-input">
+                <label class="custom-control-label" for="pregnant">Click here for pregnant ones</label>
+            </div>
+        </div>
+        <div id="div_for_disease" class="something" hidden>
+
+        </div>
+        <div id="div_for_comment" class="something" hidden>
+
+        </div>
+        <div id="date_span" hidden>
+            <label for="start_date">Start date: </label>
+            <input type="date" name="start_date" id="start_date"><br>
+            <label for="end_date">End date: </label>
+            <input type="date" name="end_date" id="end_date">
+        </div>
+    </form>
+    <script>
+        demo = document.getElementById('demo');
+        date_span = document.getElementById('date_span');
+        function div_to_show()
+        {
+            options = document.getElementsByClassName("something")[0];
+            demo.innerHTML = options.getAttribute('hidden');
+            Array.prototype.filter.call(options, function(option) {
+                if(option.getAttribute('hidden') == null)
+                {
+                    demo.innerHTML = "2"
+                    option.setAttribute('hidden', true);
+                }
+            });
+            thing = document.getElementById('thing');
+            document.getElementById('div_for_' + thing.value).removeAttribute('hidden');
+            date_required = document.getElementById(thing.value).getAttribute('data-date-required');
+            if (date_required === "true")
+            {
+                show_date();
+            }
+        }
+        function show_date()
+        {
+            date_span.removeAttribute('hidden');
+        }
+    </script>
+{% endblock %}

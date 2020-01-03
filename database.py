@@ -1,0 +1,18 @@
+import sqlite3
+
+conn = sqlite3.connect("database.db")
+db = conn.cursor()
+
+with conn:
+    db.execute("""CREATE TABLE 'cows' (
+        'tag' integer PRIMARY KEY NOT NULL,
+        'date_bought' date DEFAULT CURRENT_DATE,
+        'bought_from' varchar(64),
+        'date_sold' date DEFAULT CURRENT_DATE,
+        'sold_to' varchar(64),
+        'milk_history' text,
+        'pregnancy' text,
+        'diseases' text,
+        'comment' varchar(2048),
+        'tag_history' text
+    )""")
