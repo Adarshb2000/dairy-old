@@ -12,12 +12,14 @@ names_and_birthdays = list()
 for name, something in zip(names, birthdays):
     names_and_birthdays.append((name[0], name[1], something))
 
-old = [name_and_birthday for name_and_birthday in names_and_birthdays if datetime.strptime(name_and_birthday[2], '%d/%m/%Y') > datetime.strptime('20/05/2000', '%d/%m/%Y')]
+date_pattern = "%d/%m/%Y"
+
+old = [name_and_birthday for name_and_birthday in names_and_birthdays if datetime.strptime(name_and_birthday[2], date_pattern) > datetime.strptime('20/05/2000', date_pattern)]
 
 print(old)
 
 x = ["20/05/2000", "16/09/2000"]
 
-y = [a for a in x if datetime.strptime(a, '%d/%m/%Y') >= datetime.strptime('20/05/2000', '%d/%m/%Y') and datetime.strptime(a, '%d/%m/%Y') < datetime.strptime('16/10/2000', '%d/%m/%Y')]
+y = [a for a in x if datetime.strptime(a, date_pattern) >= datetime.strptime('20/05/2000', date_pattern) and datetime.strptime(a, date_pattern) < datetime.strptime('16/10/2000', date_pattern)]
 
 print(y)

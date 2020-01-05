@@ -1,11 +1,13 @@
 from flask import Flask, redirect, render_template, request
 import sqlite3
 import ast
+from datetime import datetime, date
 
 # RE for converting normal statements to SQLite commands
 import re
 
 from helpers import get_milk_history
+date_pattern = "%Y-%m-%d"
 
 # Setting up database
 conn = sqlite3.connect("testdb.db", check_same_thread=False)
@@ -33,6 +35,7 @@ def search():
     tag = request.form.get("tag")
     bought_from = request.form.get("bought_from")
     milk_history = request.form.get("milk_history")
+    want_milk_history = request.form.get("want_milk_history")
     #pregnancy = request.form.get("pregnancy")
     #diseases = request.form.get("diseases")
     #comment = request.form.get("comment")
@@ -70,20 +73,26 @@ def search():
 
     condition += bought_from_condition
 
-    milk_history_table = dict()
-    if milk_history:
-        milk_history_date0 = request.form.get('milk_history_date0')
-        milk_history_date1 = request.form.get('milk_history_date1')
+    milk_table = dict()
+    if milk_history or want_milk_history:
+        milk_history_start_date = request.form.get('milk_history_start_date') 
+        milk_history_end_date = request.form.get('milk_history_end_date')
 
-        print(milk_history_date0, milk_history_date1)
+        #if not milk_history_start_date:
+            #milk_history_start_date = str(datetime.strptime("0001-01-01", date_pattern))
+        #if not milk_history_end_date:
+            #milk_history_end_date = str(date.today())
+
+        print(milk_history_end_date, milk_history_start_date)
 
         # Selecting the cows where tag_condition is 1 if user hasn't given any
         cows_info = db.execute("SELECT * FROM cows WHERE " + condition).fetchall()
+        milk_history_table = dict()
 
         # Getting the last two information of all the cows
         for cow_info in cows_info:
             milk_dict = ast.literal_eval(cow_info[2])
-            new_milk_history = [(ln, date, milk) for milk, (ln, date) in milk_dict]
+            new_milk_history = [(ln, date, milk) for milk, (ln, date) in milk_dict.items() if datetime.strptime(date, date_pattern) >= datetime.strptime(milk_history_start_date, date_pattern) and datetime.strptime(date, date_pattern) <= datetime.strptime(milk_history_end_date, date_pattern)]
             milk_history_table[cow_info[0]] = [new_milk for new_milk in new_milk_history]
 
         # Searching for words
@@ -95,11 +104,10 @@ def search():
 
         elif re.findall(r'less( than)?(er)?|below|lower', milk_history, re.I):
             milk_table = { tag : info for tag, info in sorted(milk_history_table.items(), key=lambda item: item[1][0][2], reverse=True) if (info[0][2] < int(re.findall(r'(\b\d{1,2}\b)', milk_history)[0]))}
-
         else:
             milk_table = milk_history_table
         
-    return condition
+    return f"{milk_table}"
 
 @app.route("/add", methods=["GET", "POST"])
 def add():
@@ -132,3 +140,7 @@ def update():
 def delete():
     if request.method == "GET":
         return render_template("delete.html")
+
+
+if __name__ == "__main__":
+    app.run(debug=False, use_reloader=True)
