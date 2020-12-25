@@ -1,0 +1,15 @@
+<form method="post">
+    <a href="/add">back</a>
+    <input type="date" name="something" id="something">
+    <button type="submit">btn</button>
+</form>
+
+<script>
+    window.onload = () => {
+        span = document.createElement('span');
+        text = document.createTextNode('hello');
+        span.appendChild(text);
+        span.onmouseover = ()=>{alert('!dlrow olleh')};
+        document.getElementById('something').appendChild(span);
+    }
+</script>

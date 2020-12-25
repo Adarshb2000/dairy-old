@@ -1,16 +1,18 @@
 from flask import Flask, redirect, render_template, request
 import sqlite3
 import ast
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
+from dateutil.relativedelta import *
+import pandas as pd
+import numpy as np
 
 # RE for converting normal statements to SQLite commands
 import re
 
-from helpers import get_milk_history
 date_pattern = "%Y-%m-%d"
 
 # Setting up database
-conn = sqlite3.connect("testdb.db", check_same_thread=False)
+conn = sqlite3.connect("database.db", check_same_thread=False)
 db = conn.cursor()
 # For rows
 """with conn:
@@ -22,9 +24,104 @@ app = Flask(__name__)
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
+
+# Columns
+cows_columns = ['TagNumber', 'BoughtDate', 'BoughtFrom', 'VehicleNumber']
+milk_history_columns = ['TagNumber', 'LineNumber', 'Milk', 'MilkDate']
+pregnancy_columns = ['TagNumber', 'UthiDate', 'BullNumber', 'TestDate', 'DoctorName', 'DoctorConfirm', 'PregnancyStart', 'MilkStop', 'DeliveryDate', 'Gender']
+
+
+# DateTime Format
+datetime_format = '%Y-%m-%d'
+
+
+# SQLite functions
+def add_to_table(database, table, dictionay):
+    dictionay = dict(dictionay)
+    key = tuple(dictionay.keys())
+    value = tuple(dictionay.values())
+
+    with database:
+        database.cursor().execute("INSERT INTO" + f" '{table}' " + str(key) + " VALUES " + str(value))
+
+
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     return render_template("index.html")
+
+
+@app.route("/add", methods=["GET", "POST"])
+def add():
+    if request.method == "GET":
+        return render_template("add.html")
+    
+    # Getting all the variables
+    animal = request.form.get('animal_category')
+    
+    # Cows table
+    information_table = {column : request.form.get(column) for column in cows_columns}
+    
+    print(animal, information_table, sep='\n')
+
+    # Milk History Table
+    table = {column : request.form.getlist(column) for column in milk_history_columns}
+    table['TagNumber'] *= len(table[milk_history_columns[1]])
+
+    print(table)
+
+    for values in zip(*table.values()):
+        if '' in values:
+            continue
+        adding_dict = {milk_history_columns[i] : values[i] for i in range(len(values))}
+
+        print(adding_dict)
+
+
+    # Table Pregnancy
+    table = {column : request.form.getlist(column) for column in pregnancy_columns}
+    table['TagNumber'] *= len(table[pregnancy_columns[1]])
+
+    print(table, '\n\n\n')
+
+    # for TagNumber, UthiDate, UthiDetails, TestDate, DoctorName, DoctorConfirm, PregnancyStart, MilkStop, DeliveryDate, Gender in zip(*table.values()):
+    for values in zip(*table.values()):
+
+        values = list(values)
+
+        if values == [''] * len(values): continue
+
+        if values[1 : -2] == [''] * 7:
+            adding_dict = {pregnancy_columns[i] : values[i] for i in range(len(values))}
+
+
+
+        if not values[pregnancy_columns.index('TestDate')]:
+            adding_dict = {pregnancy_columns[i] : values[i] for i in range(3)}
+        
+        
+        
+        else:
+            values[pregnancy_columns.index('TestDate')] = TestDate = datetime.date(datetime.strptime(values[pregnancy_columns.index('TestDate')], datetime_format))
+            values[pregnancy_columns.index('DoctorConfirm')] = x = int(values[pregnancy_columns.index('DoctorConfirm')])
+            if not x:
+                adding_dict = {pregnancy_columns[i] : values[i] for i in range(6)}
+            else:
+                x = float(values[pregnancy_columns.index('PregnancyStart')])
+                values[pregnancy_columns.index('PregnancyStart')] = TestDate - relativedelta(month=int(x))
+                if not x.is_integer(): values[pregnancy_columns.index('PregnancyStart')] - relativedelta(weeks=2)
+                if values[-3]: values[-3] = datetime.date(datetime.strptime(values[-3], datetime_format))
+                if values[-2]: values[-2] = datetime.date(datetime.strptime(values[-2], datetime_format))
+                values[-1] = 1 if not values[-1] or values[-1] == '-1' else int(values[-1])
+                
+                adding_dict = {pregnancy_columns[i] : values[i] for i in range(len(values))}
+
+        print(adding_dict)
+    
+
+
+    return redirect('/')
+
 
 @app.route("/search", methods=["GET", "POST"])
 def search():
@@ -83,7 +180,6 @@ def search():
         #if not milk_history_end_date:
             #milk_history_end_date = str(date.today())
 
-        print(milk_history_end_date, milk_history_start_date)
 
         # Selecting the cows where tag_condition is 1 if user hasn't given any
         cows_info = db.execute("SELECT * FROM cows WHERE " + condition).fetchall()
@@ -109,38 +205,34 @@ def search():
         
     return f"{milk_table}"
 
-@app.route("/add", methods=["GET", "POST"])
-def add():
+
+
+
+
+@app.route("/add1", methods=["GET", "POST"])
+def add1():
     if request.method == "GET":
-        return render_template("add.html")
-    
-    # Getting all the variables
-    tag = int(request.form.get("tag"))
-    bought_from = request.form.get("bought_from")
+        return render_template("add1.html")
 
-    # For Milk History
-    milk_history = get_milk_history(request.form.get("milk_history"))
 
-    with conn:
-        db.execute(f"INSERT INTO cows ('tag','bought_from', 'milk_history') VALUES (:tag, :bought_from, :new_milk_history)",
-                    {
-                        'tag': tag,
-                        'bought_from': bought_from,
-                        'new_milk_history': str(milk_history)
-                    })
-
-    return redirect('/add')
 
 @app.route("/update", methods=["GET", "POST"])
 def update():
     if request.method == "GET":
         return render_template("update.html")
 
-@app.route("/delete", methods=["GET", "POST"])
-def delete():
+
+@app.route('/temp', methods=["GET", "POST"])
+def temp():
     if request.method == "GET":
-        return render_template("delete.html")
+        return render_template('temp.html')
+    else:
+        date_ = request.form.get('something')
+        print(datetime.date(datetime.strptime(date_, "%Y-%m-%d")))
+
+        return redirect('/temp')
+
 
 
 if __name__ == "__main__":
-    app.run(debug=False, use_reloader=True)
+    app.run('192.168.29.62', debug=True)

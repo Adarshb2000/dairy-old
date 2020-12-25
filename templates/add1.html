@@ -1,0 +1,328 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Add
+{% endblock %}
+
+{% block main %}
+    <div class="card collapse.show" style="width: 22rem;" id="card_0">
+        <div class="card-header bg-info">
+            Tag Number
+        </div>
+        <div class="card-body">
+            <div class="card">
+                <div class="row">
+                    <label for="animal_category">जानवर चुने</label>
+                    <select name="animal_category" id="animal_category" class="form-control" onchange="animal_change()">
+                        <option value="" disabled selected hidden>Select Animal</option>
+                        <option value="Cow">Cow/गाय</option>
+                        <option value="Buffalo">Buffalo/भेंस</option>
+                    </select>
+                    <div class="invalid-feedback">
+                        कृपया एक वैध जानवर चुनें।
+                    </div>
+                </div>
+            </div>
+            <div class="row" id="tag_number_row" >
+                <label for="tag_number">टैग संख्या डेल-</label>
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="animal"></span>
+                </div>
+                <input type="text" name="tag_number" id="tag_number" aria-describedby="animal" class="form-control col-3">
+                <div class="invalid-feedback">
+                    कृपया मान्य टैग नंबर दर्ज करें।
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="row">
+                <div class="col-6">
+                    <button class="btn btn-block btn-secondary">Back</button>
+                </div>
+                <div class="col-6">
+                    <button class="btn btn-block btn-primary" onclick="card_show(1)">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card collapse" id="card_1">
+        <div class="card-header bg-info">
+            Date Bought and bought from (खरीदी की तारीख तथा किससे खरीदा)
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label for="date_bought">खरीदी हुई तिथि का चयन करें-</label>
+                <input id="date_bought" type="date" class="form-control">
+                <div class="invalid-feedback">
+                    कृपया एक मान्य तिथि प्रविष्ट करें।
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="bought_from">किससे खरीदा उसका नाम लिखें</label>
+                <input id="bought_from" type="text" class="form-control">
+                <div class="invalid-feedback">
+                    कृपया एक मान्य नाम दर्ज करें।
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="row">
+                <div class="col-6">
+                    <button class="btn btn-block btn-secondary" onclick="card_show(0)">Back</button>
+                </div>
+                <div class="col-6">
+                    <button class="btn btn-block btn-primary" onclick="card_show(2)">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card collapse" id="card_2">
+        <div class="card-header bg-info">
+            Milk History (दूध का रिकॉर्ड)
+        </div>
+        <div class="card-body">
+            <form class="form-group form-inline" id="milk_form" novalidate>
+                <div class="form-row">
+                    <div class="col-4 mb-3">
+                        <label for="line_number">L.N.</label>
+                        <input type="number" name="line_number" id="line_number" class="form-control">
+                        <div class="invalid-feedback">
+                            Require a Line number.
+                        </div>
+                    </div>
+                    <div class="col-4 mb-3">
+                        <label for="milk">Milk</label>
+                        <input type="number" name="milk" id="milk" class="form-control">
+                        <div class="invalid-feedback">
+                            Require a Milk amount.
+                        </div>
+                    </div>
+                    <div class="col-4 mb-3">
+                        <label for="milk_date">Date</label>
+                        <input type="date" name="milk_date" id="milk_date" class="form-control">
+                        <div class="invalid-feedback">
+                            Require a Date.
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="add(event)">Add</button>
+            </form>
+            <p id="demo"></p>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">L.N.</th>
+                        <th scope="col">Milk</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Remove</th>
+                    </tr>
+                </thead>
+                <tbody id="table_body"></tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+            <div class="row">
+                <div class="col-6">
+                    <button class="btn btn-block btn-secondary" onclick="card_show(1)">Back</button>
+                </div>
+                <div class="col-6">
+                    <button class="btn btn-block btn-success" onclick="document.getElementById('final_form_submit').click()">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var today = new Date();
+        var today_date = today.getFullYear() + '-' + ((today.getMonth()) + 1) + '-' + today.getDate();
+        console.log(today_date);
+        window.onload = () => {
+            document.getElementById('date_bought').value = today_date;
+        }
+        demo = document.getElementById('demo');
+        let milk_history_number = 1;
+        function animal_change()
+        {
+            animal_category = document.getElementById('animal_category').value;
+            if (animal_category === "Cow")
+            {
+                document.getElementById('animal').innerText = 'C';
+            }
+            else
+            {
+                document.getElementById('animal').innerText = 'B';
+            }
+            document.getElementById('tag_number_row').style.display = '';
+            document.getElementById('tag_number').focus();
+        }
+        
+        function add(event) {
+            event.preventDefault();
+            
+            // Checking input
+
+            // Line Number 
+            if (!line_number.value)
+            {
+                demo.innerHTML = "Hello";
+                line_number.classList.add('is-invalid');
+                return;
+            }
+            else if (line_number.classList.contains('is-invalid'))
+            {
+                line_number.classList.remove('is-invalid');
+            }
+
+            // Milk
+            var milk = document.getElementById('milk');
+            if(!milk.value)
+            {
+                milk.classList.add('is-invalid');
+                return;
+            }
+            else if (milk.classList.contains('is-invalid'))
+            {
+                milk.classList.remove('is-invalid');
+            }
+            
+            // Date
+            var date = document.getElementById('milk_date');
+            if(!date.value)
+            {
+                date.classList.add('is-invalid');
+                return;
+            }
+            else if (date.classList.contains('is-invalid'))
+            {
+                date.classList.remove('is-invalid');
+            }
+            
+            // Adding if all valid
+
+            // Creating row
+            var row = document.createElement('tr');
+            row.setAttribute('id', 'milk_history_row_' + String(milk_history_number));
+            row.setAttribute('name', 'milk_history_row');
+
+            // First column (number)
+            var col1 = document.createElement('td');
+            var num = document.createTextNode(String(milk_history_number));
+            col1.appendChild(num);
+            row.appendChild(col1);
+            
+
+            // Second column (Line number)
+            var col2 = document.createElement('td');
+            var ln = document.createTextNode(line_number.value);
+            col2.appendChild(ln);
+            row.appendChild(col2);
+
+            // Third column (Milk)
+            var col3 = document.createElement('td');
+            var milk_amount = document.createTextNode(milk.value);
+            col3.appendChild(milk_amount);
+            row.appendChild(col3);
+
+            // Fourth column (Date)
+            var col4 = document.createElement('td');
+            var dt = document.createTextNode(String(date.value));
+            col4.appendChild(dt);
+            row.appendChild(col4);
+
+            // Fifth column (Remove)
+            var col5 = document.createElement('td');
+            var btn = document.createElement('button');
+            btn.setAttribute('onclick', 'remove(' + String(milk_history_number) +')');
+            var btn_text = document.createTextNode('Remove');
+            btn.appendChild(btn_text);
+            btn.classList.add('btn');
+            btn.classList.add('btn-danger');
+            col5.appendChild(btn);
+            row.appendChild(col5);
+
+            var element = document.getElementById('table_body');
+            element.appendChild(row);
+
+            milk_history_number++; // Incrementing for next addition
+        }
+
+        function remove (row_number) {
+            row = document.getElementById('milk_history_row_' + row_number);
+            row.remove();
+        }
+        // To set final values
+        function form_submit(event) {
+            event.preventDefault();
+
+            // Current showing form
+            var current = document.getElementsByClassName('collapse.show')[0];
+
+            // Cheching and Setting values for Tag
+            let animal = document.getElementById('animal');
+            let tag = document.getElementById('tag_number');
+            if (!animal.innerText || !tag.value)
+            {
+                if (!tag.value)
+                    tag.classList.add('is-invalid');
+                if (!animal.value)
+                    animal.classList.add('is-invalid');
+                var card0 = document.getElementById('card_0');
+                card0.childNodes[1].classList.replace('bg-info', 'bg-danger');
+                if (card0 != current)
+                {
+                    current.classList.replace('collapse.show', 'collapse');
+                    card0.classList.replace('collapse', 'collapse.show');
+                }
+                return;
+            }
+            document.getElementById('form_tag').value = animal.innerText + '-' + tag.value;
+
+            // Checking and Setting values for date bought and bought from
+            let date = document.getElementById('date_bought');
+            let name = document.getElementById('bought_from');
+            if (!name.value || !date)
+            {
+                if (!name.value)
+                    name.classList.add('is-invalid');
+                if (!(date.value))
+                    date.classList.add('is-invalid');
+                var card1 = document.getElementById('card_1');
+                card1.childNodes[1].classList.replace('bg-info', 'bg-danger');
+                if (card1 != current)
+                {
+                    current.classList.replace('collapse.show', 'collapse');
+                    card1.classList.replace('collapse', 'collapse.show');
+                }
+                return;
+            }
+            document.getElementById('form_date_bought').value = date;
+            document.getElementById('form_bought_from').value = name.value;
+
+            // Setting values for milk history
+            rows = document.getElementsByName('milk_history_row');
+            let str = "";
+            rows.forEach(row => {
+                str += row.childNodes[1].innerHTML + '_' +  row.childNodes[2].innerHTML + '_' + row.childNodes[3].innerHTML + '!';
+            });
+            document.getElementById('form_milk_history').value = str;
+
+            // Everything works out
+            document.getElementById('final_form').submit();
+        }
+        
+        // To show different cards
+        function card_show(number)
+        {
+            document.getElementsByClassName('collapse.show')[0].classList.replace('collapse.show', 'collapse');
+            document.getElementById('card_' + number).classList.replace('collapse', 'collapse.show');
+        }
+    </script>
+{% endblock %}
+
+{% block footer %}
+<div>
+    <button class="btn btn-secondary" onclick="card_show(0)">Tag</button>
+    <button class="btn btn-secondary" onclick="card_show(1)">Date Bought and Bought from</button>
+    <button class="btn btn-secondary" onclick="card_show(2)">Milk History</button>
+</div>  
+{% endblock %}
