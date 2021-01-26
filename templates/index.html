@@ -5,5 +5,14 @@
 {% endblock %}
 
 {% block main %}
-    <a class="btn btn-block btn-primary" href="/add">एक नया मवेशी जोड़ें।</a>
+<div class="p-2">
+    <a class="btn btn-primary" href="/add">एक नया मवेशी जोड़ें।</a><br><br>
+    <a class="btn btn-primary" href="/update_milk_history">Update</a><hr>
+    <a class="btn btn-primary" href="/update_tag_number">Update</a><hr>
+    <h1>Search</h1>
+    <form action="/tag_search" method="get" class="form-inline">
+        <input type="Number" name="TagNumber" class="form-control" min="1"> &nbsp;
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+</div>    
 {% endblock %}

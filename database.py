@@ -16,14 +16,15 @@ with conn:
         'BoughtDate' date NOT NULL DEFAULT CURRENT_DATE,
         'VehicleNumber' smallint NOT NULL,
         'IsPregnant' boolean,
+        'IsPregnantNotTested' boolean,
         'IsGivingMilk' boolean,
         'Comment' text
         )""")
     db.execute("""CREATE TABLE IF NOT EXISTS 'MilkHistory' (
         'TagNumber' integer NOT NULL,
         'LineNumber' smallint NOT NULL,
-        'Milk' smallint NOT NULL,
-        'Date' date NOT NULL DEFAULT CURRENT_DATE,
+        'Milk' NUMERIC NOT NULL,
+        'MilkDate' date NOT NULL DEFAULT CURRENT_DATE,
         FOREIGN KEY(TagNumber) REFERENCES cows(TagNumber)
         )""")
     db.execute("""CREATE TABLE IF NOT EXISTS 'Pregnancy' (

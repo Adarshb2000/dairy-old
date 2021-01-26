@@ -12,7 +12,7 @@ import re
 date_pattern = "%Y-%m-%d"
 
 # Setting up database
-conn = sqlite3.connect("database.db", check_same_thread=False)
+conn = sqlite3.connect("database.db", check_same_thread=False, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
 db = conn.cursor()
 # For rows
 """with conn:
@@ -29,20 +29,20 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 cows_columns = ['TagNumber', 'BoughtDate', 'BoughtFrom', 'VehicleNumber']
 milk_history_columns = ['TagNumber', 'LineNumber', 'Milk', 'MilkDate']
 pregnancy_columns = ['TagNumber', 'UthiDate', 'BullNumber', 'TestDate', 'DoctorName', 'DoctorConfirm', 'PregnancyStart', 'MilkStop', 'DeliveryDate', 'Gender']
-
+pregnancy_columns_dict = {column : index for index, column in enumerate(pregnancy_columns)}
 
 # DateTime Format
 datetime_format = '%Y-%m-%d'
 
 
 # SQLite functions
-def add_to_table(database, table, dictionay):
+def add_to_table(table, dictionay):
     dictionay = dict(dictionay)
     key = tuple(dictionay.keys())
     value = tuple(dictionay.values())
 
-    with database:
-        database.cursor().execute("INSERT INTO" + f" '{table}' " + str(key) + " VALUES " + str(value))
+    with conn:
+        conn.cursor().execute("INSERT INTO" + f" '{table}' " + str(key) + " VALUES (" + ', '.join(tuple(['?'] * len(value))) + ')', value)
 
 
 
@@ -62,64 +62,87 @@ def add():
     # Cows table
     information_table = {column : request.form.get(column) for column in cows_columns}
     
-    print(animal, information_table, sep='\n')
 
     # Milk History Table
     table = {column : request.form.getlist(column) for column in milk_history_columns}
     table['TagNumber'] *= len(table[milk_history_columns[1]])
 
-    print(table)
 
     for values in zip(*table.values()):
         if '' in values:
             continue
-        adding_dict = {milk_history_columns[i] : values[i] for i in range(len(values))}
-
-        print(adding_dict)
+        milk_history_table = {milk_history_columns[i] : values[i] for i in range(len(values))}
+        milk_history_table['MilkDate'] = datetime.date(datetime.strptime(milk_history_table['MilkDate'], date_pattern))
+        print(milk_history_table)
+        add_to_table('MilkHistory', milk_history_table)
 
 
     # Table Pregnancy
-    table = {column : request.form.getlist(column) for column in pregnancy_columns}
-    table['TagNumber'] *= len(table[pregnancy_columns[1]])
+    table = [request.form.getlist(column) for column in pregnancy_columns]
+    table[0] *= len(table[1])
 
-    print(table, '\n\n\n')
-
-    # for TagNumber, UthiDate, UthiDetails, TestDate, DoctorName, DoctorConfirm, PregnancyStart, MilkStop, DeliveryDate, Gender in zip(*table.values()):
-    for values in zip(*table.values()):
+    # for TagNumber, UthiDate, BullNumber, TestDate, DoctorName, DoctorConfirm, PregnancyStart, MilkStop, DeliveryDate, Gender in zip(*table.values()):
+    for values in zip(*table):
 
         values = list(values)
 
-        if values == [''] * len(values): continue
+        bello = True
 
-        if values[1 : -2] == [''] * 7:
-            adding_dict = {pregnancy_columns[i] : values[i] for i in range(len(values))}
-
-
-
-        if not values[pregnancy_columns.index('TestDate')]:
-            adding_dict = {pregnancy_columns[i] : values[i] for i in range(3)}
+        for i in [1, 2, 3, 4, 6, 7, 8, 9]:
+            if values[i]:
+                bello = False
+                break
         
+        if bello: continue
+
+        for column in ['TagNumber', 'DoctorConfirm']:
+            if x := values[pregnancy_columns_dict[column]]:
+                values[pregnancy_columns_dict[column]] = int(x)
+
+        for column in ['UthiDate', 'MilkStop', 'DeliveryDate']:
+            if x := values[pregnancy_columns_dict[column]]:
+                values[pregnancy_columns_dict[column]] = datetime.date(datetime.strptime(x, date_pattern))
         
-        
-        else:
-            values[pregnancy_columns.index('TestDate')] = TestDate = datetime.date(datetime.strptime(values[pregnancy_columns.index('TestDate')], datetime_format))
-            values[pregnancy_columns.index('DoctorConfirm')] = x = int(values[pregnancy_columns.index('DoctorConfirm')])
-            if not x:
-                adding_dict = {pregnancy_columns[i] : values[i] for i in range(6)}
+        if x := values[pregnancy_columns_dict['TestDate']]:
+            values[pregnancy_columns_dict['TestDate']] = x = datetime.date(datetime.strptime(x, date_pattern))
+            if values[pregnancy_columns_dict['DoctorConfirm']]:
+                if y := float(values[pregnancy_columns_dict['PregnancyStart']].strip()):
+                    values[pregnancy_columns.index('PregnancyStart')] = x - relativedelta(months=int(y))
+                    if not y.is_integer(): values[pregnancy_columns.index('PregnancyStart')] -= relativedelta(weeks=2)
+            
             else:
-                x = float(values[pregnancy_columns.index('PregnancyStart')])
-                values[pregnancy_columns.index('PregnancyStart')] = TestDate - relativedelta(month=int(x))
-                if not x.is_integer(): values[pregnancy_columns.index('PregnancyStart')] - relativedelta(weeks=2)
-                if values[-3]: values[-3] = datetime.date(datetime.strptime(values[-3], datetime_format))
-                if values[-2]: values[-2] = datetime.date(datetime.strptime(values[-2], datetime_format))
-                values[-1] = 1 if not values[-1] or values[-1] == '-1' else int(values[-1])
-                
-                adding_dict = {pregnancy_columns[i] : values[i] for i in range(len(values))}
+                values[pregnancy_columns_dict['PregnancyStart']] = ''
+            
+        else:
+            values[pregnancy_columns_dict['PregnancyStart']] = ''
+        
+        values[pregnancy_columns_dict['Gender']] = '' if values[pregnancy_columns_dict['Gender']] == '-1' else int(values[pregnancy_columns_dict['Gender']])
 
-        print(adding_dict)
+        pregnancy_table = {pregnancy_columns[i] : values[i] for i in range(len(values))}
+
+        add_to_table('Pregnancy', pregnancy_table)
+
+
+    if not values[-1]:
+        if values[pregnancy_columns_dict['TestDate']]:
+            if values[pregnancy_columns_dict['DoctorConfirm']]:
+                information_table['IsPregnant'] = 1
+                information_table['IsPregnantNotTested'] = 0
+            else:
+                information_table['IsPregnant'] = 0
+                information_table['IsPregnantNotTested'] = 0
+        else:
+            information_table['IsPregnant'] = 0
+            information_table['IsPregnantNotTested'] = 1
+    else:
+        information_table['IsPregnant'] = 0
+        information_table['IsPregnantNotTested'] = 0
+
+    try:
+        add_to_table('Cows', information_table)
+    except sqlite3.IntegrityError:
+        pass
     
-
-
     return redirect('/')
 
 
@@ -207,6 +230,15 @@ def search():
 
 
 
+@app.route("/tag_search")
+def search_tag():
+    TagNumber = request.args.get('TagNumber')
+    results = []
+    for table in ['Cows', 'MilkHistory', 'Pregnancy']:
+        results.append(db.execute(f"SELECT * FROM {table} WHERE TagNumber = :TagNumber", {'TagNumber' : TagNumber}).fetchall())
+    if results[0]: results[0] = results[0][0]
+    return render_template('tag_search.html', information=results[0], milk_history=results[1], pregnancy=[{ pregnancy_columns[j]: results[2][i][j] for j in range(1, len(pregnancy_columns))} for i in range(len(results[2]))])
+
 
 
 @app.route("/add1", methods=["GET", "POST"])
@@ -216,10 +248,18 @@ def add1():
 
 
 
-@app.route("/update", methods=["GET", "POST"])
-def update():
+@app.route("/update_milk_history", methods=["GET", "POST"])
+def update_milk_history():
     if request.method == "GET":
-        return render_template("update.html")
+        return render_template("update_milk_history.html")
+    else:
+        add_to_table('MilkHistory', {column: request.form.getlist(column) for column in milk_history_columns})
+
+
+@app.route("/update_tag_number", methods=["GET", "POST"])
+def update_tag_number():
+    if request.method == "GET":
+        return render_template("update_tag_number.html")
 
 
 @app.route('/temp', methods=["GET", "POST"])
@@ -228,11 +268,18 @@ def temp():
         return render_template('temp.html')
     else:
         date_ = request.form.get('something')
-        print(datetime.date(datetime.strptime(date_, "%Y-%m-%d")))
+        x = float(request.form.get('x'))
+        print(x, int(x))
+        final = datetime.date(datetime.strptime(date_, '%Y-%m-%d')) 
+        print(final)
+        final = final - relativedelta(months=int(x))
+        print(final)
+        if not x.is_integer(): final = final - relativedelta(weeks=2)
+        print(final)
 
         return redirect('/temp')
 
 
 
 if __name__ == "__main__":
-    app.run('192.168.29.62', debug=True)
+    app.run('192.168.29.62', port=1234, debug=True)

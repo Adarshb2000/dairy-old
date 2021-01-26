@@ -1,0 +1,185 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Update Milk History
+{% endblock %}
+
+{% block main %}
+<style>
+    .hidden {
+        display: none;
+    }
+    .bold {
+        font-weight: bold;
+    }
+</style>
+<div class="card col-md-6 col-lg-6 mx-auto p-0" id="milk_history">
+    <!-- <div class="card-header text-center text-white bg-dark">
+        <h5>Add a new Tag</h5>
+    </div> -->
+    <div class="card-body p-3">
+        <div class="form-group border border-dark p-3" id="milk_history_form">
+            <div class="alert alert-primary">
+                Milk History (दूध का रिकॉर्ड)
+            </div>
+            <div class="form-inline">
+                <label for="TagNumber">Tag &nbsp;</label>
+                <input type="number" id="TagNumber" min="1" class="form-control yo">
+                <div class="invalid-feedback">
+                    Require a Tag number.
+                </div>
+            </div><hr>
+            <div class="form-inline">
+                <label for="LineNumber">L.N. &nbsp;</label>
+                <input type="number" id="LineNumber" min="1" class="form-control yo">
+                <div class="invalid-feedback">
+                    Require a Line number.
+                </div>
+            </div><hr>
+            <div class="form-inline">
+                <label for="Milk">Milk &nbsp;</label>
+                <input type="number" id="Milk" min="0" step="0.25" class="form-control yo">
+                <div class="invalid-feedback">
+                    Require a Milk amount.
+                </div>
+            </div><hr>
+            <div class="form-inline">
+                <label for="MilkDate">Date &nbsp;</label>
+                <input type="date" id="MilkDate" class="form-control yo">
+                <div class="invalid-feedback">
+                    Require a Date.
+                </div>
+            </div><hr>
+            <div class="d-grid gap-2">
+                <button type="button" class="btn btn-success" onclick="add()">Add</button>
+            </div><hr>
+            <table class="table table-hover hidden">
+                <thead>
+                    <tr>
+                        <th scope="col">Tag</th>
+                        <th scope="col">L.N.</th>
+                        <th scope="col">Milk</th>
+                        <th scope="col">Date</th>
+                    </tr>
+                </thead>
+                <tbody id="table_body"></tbody>
+            </table>
+            <button type="button" class="btn btn-secondary br-btn" disabled onclick="edit_changes()">Edit</button>
+            <button type="button" class="btn btn-danger br-btn" disabled onclick="delete_row()">Delete</button>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="row">
+            <div class="col-6">
+                <a href="/" class="btn btn-block btn-danger">Back</a>
+            </div>
+            <div class="col-6">
+                <button type="submit" class="btn btn-block btn-success">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var items = ['TagNumber', 'LineNumber', 'Milk', 'MilkDate'];
+    var selected_elements = [];
+
+    function add() {
+        
+        var add_row = true;
+
+        // Checking Items validity
+        items.forEach((item) => {
+            item = document.getElementById(item);
+            if (!item.value){
+                add_row = false;
+                item.setCustomValidity('invalid');
+            }
+        });
+        if (!add_row) {
+            document.getElementById('milk_history_form').classList.toggle('was-validated'); 
+            return;
+        }
+
+        // All valid
+        document.getElementById('milk_history_form').classList.remove('was-validated'); 
+
+        // Creating row
+        var row = document.createElement('tr');
+
+        // First column (number)
+        var td = document.createElement('td');        
+
+        items.forEach((item) => {
+            var inp = document.createElement('input');
+            inp.name = item;
+            elem = document.getElementById(item);
+            inp.setAttribute('value', elem.value);
+            inp.classList = 'col-3 btn p-0';
+            if (item === 'MilkDate') {
+                inp.classList.replace('col-3', 'col-10');
+            }
+            inp.setAttribute('readonly', true);
+            column = document.createElement('td');
+            column.appendChild(inp);
+            row.appendChild(column);
+            elem.value = '';
+        });
+
+        row.addEventListener('click', (event) => {
+            var elem = event['path'][1];
+            if (elem.children.length != 3) {
+                elem = event['path'][2];
+            }
+            if (selected_elements.includes(elem)){
+                elem.classList.remove('bg-primary');
+                selected_elements.splice(selected_elements.indexOf(elem), 1);
+            }
+            else {
+                selected_elements.push(elem);
+                elem.classList.add('bg-primary');
+            }
+            if (selected_elements.length == 0) {
+                Array.prototype.filter.call(document.getElementsByClassName('br-btn'), (btn) => {
+                    btn.setAttribute('disabled', true);
+                });
+            }
+            else {
+                Array.prototype.filter.call(document.getElementsByClassName('br-btn'), (btn) => {
+                    btn.removeAttribute('disabled');
+                });
+            }
+
+        });
+
+        document.getElementsByTagName('tbody')[0].appendChild(row);
+        if (document.getElementsByTagName('table')[0].children.length > 0) {
+            document.getElementsByTagName('table')[0].classList.remove('hidden');
+        }
+        document.getElementById(items[0]).focus();
+    }
+
+    function edit_changes() {
+        Array.prototype.filter.call(selected_elements, (elem) => {
+            Array.prototype.filter.call(elem.children, (child) => {
+                child.children[0].removeAttribute('readonly');
+            });
+        });
+    }
+
+    function delete_row() {
+        Array.prototype.filter.call(selected_elements, (elem) => {
+            elem.remove()
+        });
+        selected_elements = [];
+        Array.prototype.filter.call(document.getElementsByClassName('br-btn'), (btn) => {
+            btn.setAttribute('disabled', true);
+        });
+        if (document.getElementsByTagName('table')[0].children.length < 1) {
+            document.getElementsByTagName('table')[0].classList.add('hidden');
+        }
+    }
+</script>
+
+
+{% endblock %}

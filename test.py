@@ -1,11 +1,13 @@
-from datetime import datetime, timedelta
-from dateutil.relativedelta import *
+import sqlite3
+from datetime import datetime
 
-date_string = '2020-12-20'
-
-x = datetime.date(datetime.strptime(date_string, '%Y-%m-%d'))
-
-x = x - relativedelta(months=2.5)
+conn = sqlite3.connect("database.db", detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+db = conn.cursor()
+values = ('137', '1', 1, datetime.date(datetime.strptime('2020-12-20', '%Y-%m-%d')))
 
 
-print(x)
+# db.execute("INSERT INTO 'MilkHistory' ('TagNumber', 'LineNumber', 'Milk', 'MilkDate') VALUES (" + ', '.join(tuple(['?'] * len(values))) + ')', values)
+
+print(db.execute("SELECT * FROM Cows").fetchall())
+print(db.execute("SELECT * FROM MilkHistory").fetchall())
+print(db.execute("SELECT * FROM Pregnancy").fetchall())

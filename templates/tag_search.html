@@ -1,0 +1,114 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Tag Number {{ information[0] }}
+{% endblock %}
+
+{% block main %}
+<div class="text-center">
+    <h1 style="font-size: 300%;">{{ information[0] }}</h1>
+</div>
+
+<div class="row">
+    <div class="col-sm my-auto text-center">
+        <div class="alert alert-warning" role="alert">
+            <span style="font-size: 100%;">
+                {{ information[2].strftime('%d-%m-%Y') }} ko {{ information[1] }} ki {{ information[3] }}N gaadi se aayi
+            </span>
+        </div>
+    </div>
+</div>
+<hr>
+{% if milk_history|length %}
+    <div class="row justify-content-center text-center">
+        <div class="col-lg-4">
+            <h1>Milk History</h1>
+            <table class="table table-secondary">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">L.N.</th>
+                        <th scope="col">Milk</th>
+                        <th scope="col">Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for values in milk_history %}
+                    <tr>
+                        <th scope="row">{{ loop.index }}</th>
+                        <td>{{ values[1] }}</td>    
+                        <td name="milk">{{ values[2] }}</td>    
+                        <td>{{ values[3].strftime('%d-%m-%Y') }}</td>    
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                
+            </table>
+        </div>
+        <br>
+        <div class="row justify-content-center">
+            <div class="col-lg-4 border border-dark" style="font-size: large;">
+                Highest: <var></var><br>
+                Average: <var></var>
+            </div>
+        </div>
+    </div>
+    <hr>
+{% endif %}
+
+{% if pregnancy|length %}
+    <div class="row justify-content-center">
+        <h1 class=" text-center">Pregnancy</h1>
+        <div class="col-lg-4">
+            {% for i in pregnancy %}
+                <div class="alert alert-primary" role="alert">
+                    {% if i['UthiDate'] %}
+                        उठी &nbsp; <span class="badge badge-primary" style="font-size: large;">{{ i['UthiDate'].strftime('%d-%m-%Y') }}</span>
+                        {% if i['BullNumber'] %}
+                            S.N. ({{ i['BullNumber'] }}) 
+                        {% endif %}<br>
+                    {% endif %}
+                    {% if i['TestDate'] %}
+                        <span style="color: green;">
+                            Test Date {{ i['TestDate'] }}<br>
+                            {% if not i['DoctorConfirm'] %} 
+                                <span style="color: red;">&times;</span>
+                            {% else %}
+                                Time {{ i['PregnancyStart'] }}
+                            {% endif %}
+                        </span>                        
+                    {% endif %}
+                    {% if i['MilkStop'] %}
+                        हुराई &nbsp; <span class="badge badge-primary" style="font-size: large;">{{ i['MilkStop'].strftime('%d-%m-%Y') }}</span>
+                    {% endif %}
+                    {% if i['DeliveryDate'] %}
+                        ब्याही &nbsp; <span class="badge badge-primary" style="font-size: large;">{{ i['DeliveryDate'].strftime('%d-%m-%Y') }}</span>
+                        {% if i['Gender'] %}
+                            पड़ा
+                        {% else %}
+                            पड़िया
+                        {% endif %}
+                    {% endif %}
+
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+
+
+<script>
+    //setInterval(window.location.reload(), 10000);
+    window.addEventListener('load', () => {
+        var average = 0, max = 0, value;
+        document.getElementsByName('milk').forEach((item) => {
+            value = Number(item.innerText);
+            average += value;
+            max = (max > value)? max : value;
+        });
+        document.getElementsByTagName('var')[0].innerText = max;
+        average = average / document.getElementsByName('milk').length;
+        document.getElementsByTagName('var')[1].innerText = average.toFixed(2);
+    });
+</script>
+{% endblock %}
