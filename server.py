@@ -1,6 +1,7 @@
 import os
 import re
+import subprocess
 
 
-text = os.system("ssh -R 80:192.168.29.235:1234 ssh.localhost.run &")
+text = subprocess.call("ssh -R 80:192.168.29.62:5000 ssh.localhost.run")
 print(str(text))

@@ -26,10 +26,11 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 
 # Columns
-cows_columns = ['TagNumber', 'BoughtDate', 'BoughtFrom', 'VehicleNumber']
+cows_columns = ['TagNumber', 'BoughtDate', 'BoughtFrom', 'VehicleNumber', 'IsPregnant', 'IsPregnantNotTested', 'IsGivingMilk', 'IsSick', 'Comment']
 milk_history_columns = ['TagNumber', 'LineNumber', 'Milk', 'MilkDate']
 pregnancy_columns = ['TagNumber', 'UthiDate', 'BullNumber', 'TestDate', 'DoctorName', 'DoctorConfirm', 'PregnancyStart', 'MilkStop', 'DeliveryDate', 'Gender']
 pregnancy_columns_dict = {column : index for index, column in enumerate(pregnancy_columns)}
+diseases_columns = ['TagNumber', 'DiseaseID', 'Vaccine', 'DiseaseDoctor', 'VaccineDate']
 
 # DateTime Format
 datetime_format = '%Y-%m-%d'
@@ -142,6 +143,7 @@ def add():
         add_to_table('Cows', information_table)
     except sqlite3.IntegrityError:
         pass
+    # TODO
     
     return redirect('/')
 
@@ -282,4 +284,4 @@ def temp():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='192.168.29.62', debug=True)
